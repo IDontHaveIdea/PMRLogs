@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\BuildSettings.Common.props" />
+  <Import Project="..\BuildSettings.KoikatsuSunshine.props" />
+
+	<!--<Import Project="..\Global\Global.projitems" Label="Shared" />-->
+
+  <PropertyGroup>
+    <ProjectGuid>{9289AE95-49F0-460C-BCD0-8FDE608464E0}</ProjectGuid>
+    <RootNamespace>$(MSBuildProjectName.Replace(".KKS", ""))</RootNamespace>
+    <AssemblyName>KKS_$(MSBuildProjectName.Replace(".KKS", ""))</AssemblyName>
+    <Nullable>warnings</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="BepInEx.ConfigurationManager" Version="16.4.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="IllusionLibs.BepInEx" Version="5.4.15" />
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.Assembly-CSharp" Version="2021.9.17" />
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.Assembly-CSharp-firstpass" Version="2021.9.17" />
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.CoreModule" Version="2019.4.9" />
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.ImageConversionModule" Version="2019.4.9" />
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.IMGUIModule" Version="2019.4.9" />
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.UI" Version="2019.4.9" />
+    <PackageReference Include="IllusionLibs.KoikatsuSunshine.UnityEngine.UIModule" Version="2019.4.9" />
+    <PackageReference Include="IllusionModdingAPI.KKSAPI" Version="1.31.2" />
+    <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.12.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="KKS_IDHIUtils">
+      <HintPath>..\..\lib\KKS\KKS_IDHIUtils.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
