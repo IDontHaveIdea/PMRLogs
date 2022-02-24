@@ -39,7 +39,7 @@
 
   <ItemGroup>
     <Reference Include="KKS_IDHIUtils">
-      <HintPath>..\..\lib\KKS\KKS_IDHIUtils.dll</HintPath>
+      <HintPath>..\..\..\lib\KKS\KKS_IDHIUtils.dll</HintPath>
     </Reference>
   </ItemGroup>
 
