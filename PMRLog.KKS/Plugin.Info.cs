@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
+using IDHIPlugins;
 using IDHIUtils;
 
 #region Assembly attributes
@@ -9,19 +10,16 @@ using IDHIUtils;
  * These attributes define various meta-information of the generated DLL.
  * In general, you don't need to touch these. Instead, edit the values in Info.
  */
-[assembly: AssemblyTitle(Constants.Prefix + "_" + PMRLog.PInfo.PluginName + " (" + PMRLog.PInfo.GUID + ")")]
-[assembly: AssemblyProduct(Constants.Prefix + "_" + PMRLog.PInfo.PluginName)]
-[assembly: AssemblyVersion(PMRLog.PInfo.Version)]
-[assembly: AssemblyFileVersion(PMRLog.PInfo.Version)]
-
-// The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("9289ae95-49f0-460c-bcd0-8fde608464e0")]
+[assembly: AssemblyTitle(Constants.Prefix + "_" + PMRLogs.PluginName + " (" + PMRLogs.GUID + ")")]
+[assembly: AssemblyProduct(Constants.Prefix + "_" + PMRLogs.PluginName)]
+[assembly: AssemblyVersion(PMRLogs.Version)]
+[assembly: AssemblyFileVersion(PMRLogs.Version)]
 
 #endregion Assembly attributes
 
-namespace PMRLog
+namespace IDHIPlugins
 {
-    public struct PInfo
+    public partial class PMRLogs
     {
         public const string GUID = "com.ihavenoidea.pmrlog";
 #if DEBUG
