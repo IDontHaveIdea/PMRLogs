@@ -36,7 +36,7 @@ namespace IDHIPlugins
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        static internal void OnGameExit(object sender, EventArgs e)
+        internal static void OnGameExit(object sender, EventArgs e)
         {
             var fileName = $"output_log.txt";
             var strLogs = new StringBuilder();
