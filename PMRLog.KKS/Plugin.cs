@@ -1,38 +1,42 @@
-﻿using System;
+﻿//
+// Poor man rotating log
+//
+
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 using BepInEx;
 
 using KKAPI;
 
+//using static System.Linq.AnonymousComparer;
+
 namespace IDHIPlugins
 {
-    //
-    // TODO:
-    // Only load for main game no Studio
-    // Not loading any type of animations in Studio the loading is just taking time at the moment
-    // Regex reg = new Regex(@"^^(?!p_|t_).*");
-
-    //var files = Directory.GetFiles(yourPath, "*.png; *.jpg; *.gif")
-    //                     .Where(path => reg.IsMatch(path))
-    //                     .ToList();
-
-    // [BepInProcess(KoikatuAPI.StudioProcessName)]
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     [BepInPlugin(GUID, PluginDisplayName, Version)]
     [BepInProcess(KoikatuAPI.GameProcessName)]
-    [BepInProcess(KoikatuAPI.StudioProcessName)]
     [BepInProcess(KoikatuAPI.VRProcessName)]
     public partial class PMRLogs : BaseUnityPlugin
     {
+        private const int _totalFiles = 10;
+
         private void Awake()
         {
             KoikatuAPI.Quitting += OnGameExit;
         }
 
         /// <summary>
-        /// Game exit event handler
+        /// On a clean exit this plugin will save the output_log.txt in UserData/Logs
+        /// It will rotate 10 files i.e., after a full rotation there should be 11 files
+        /// in the drectory
+        ///
+        /// TODO: Take care of missing files in the order
+        /// 
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -40,15 +44,14 @@ namespace IDHIPlugins
         {
             var fileName = $"output_log.txt";
             var strLogs = new StringBuilder();
-            FileInfo file = new(fileName);
-            var totalFiles = 10;
+            FileInfo logFile = new(fileName);
 
             try
             {
-                if (file.Exists)
+                if (logFile.Exists)
                 {
                     using (var stream = File.Open(
-                        file.FullName,
+                        logFile.FullName,
                         FileMode.Open,
                         FileAccess.Read,
                         FileShare.ReadWrite))
@@ -66,11 +69,28 @@ namespace IDHIPlugins
                     logOutputFile.Directory.Create();
                     if (logOutputFile.Exists)
                     {
-                        if (totalFiles > 0)
+                        if (_totalFiles > 0)
                         {
                             var strTmp = $"[Info:  PMRLog] 0001: File {logOutputFileName} already exits rotate.";
-                            strLogs.Append($"{strTmp}\n");
-                            Console.WriteLine(strTmp);
+                            var logsDir = new DirectoryInfo(path);
+                            
+                            var files = logsDir.GetFiles("*.log.*").OrderBy(x => x.Name, new NaturalSortComparer<string>()).ToArray();
+                            Console.WriteLine($"Total files=[{files.Length}]");
+                            for(var i = (files.Length - 1); i >= 0; i--)
+                            {
+                                if (i == _totalFiles)
+                                { 
+                                    files[i].Delete();
+                                    continue;
+                                }
+                                files[i].MoveTo($"{path}/output_log.log.{i+1}");
+                            }
+#if DEBUG
+                            for (var i = 0; i < files.Length; i++)
+                            {
+                                Console.WriteLine(files[i].Name);
+                            }
+#endif
                         }
                     }
 
@@ -88,246 +108,121 @@ namespace IDHIPlugins
                 Console.WriteLine($"0002: Log file not found {ex}");
             }
         }
+    }
 
-        /*
-        public abstract class Logger : IDisposable
+    /// <summary>
+    /// James McCormack
+    /// https://zootfroot.blogspot.com/2009/09/natural-sort-compare-with-linq-orderby.html
+    ///
+    /// Modified to handle FieldInfo types
+    /// 
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class NaturalSortComparer<T> : IComparer<FileInfo>, IComparer<string>, IDisposable
+    {
+        private readonly bool _isAscending;
+        private static readonly Regex reNumbersEx = new("([0-9]+)", RegexOptions.Compiled);
+
+        public NaturalSortComparer(bool inAscendingOrder = true)
         {
-            private LogVerbosity _verbosity;
-            private Queue<Action> _queue = new Queue<Action>();
-            private ManualResetEvent _hasNewItems = new ManualResetEvent(false);
-            private ManualResetEvent _terminate = new ManualResetEvent(false);
-            private ManualResetEvent _waiting = new ManualResetEvent(false);
-            private Thread _loggingThread;
+            _isAscending = inAscendingOrder;
+        }
 
-            private static readonly Lazy<Logger> _lazyLog = new Lazy<Logger>(() => {
-                switch (Settings.Default.LogFlow)
+        public int Compare(string x, string y)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal int CompareString(string x, string y)
+        {
+            if (x == y)
+            {
+                return 0;
+            }
+
+            if (!table.TryGetValue(x, out var x1))
+            {
+                //x1 = Regex.Split(x.Replace(" ", ""), "([0-9]+)");
+                x1 = reNumbersEx.Split(x.Replace(" ", ""));
+                table.Add(x, x1);
+            }
+
+            if (!table.TryGetValue(y, out var y1))
+            {
+                //y1 = Regex.Split(y.Replace(" ", ""), "([0-9]+)");
+                y1 = reNumbersEx.Split(y.Replace(" ", ""));
+                table.Add(y, y1);
+            }
+
+            int returnVal;
+
+            for (var i = 0; i < x1.Length && i < y1.Length; i++)
+            {
+
+                if (x1[i] == y1[i])
                 {
-                    case (int)LogFlow.Local:
-                        return new LocalLogger();
-                    case (int)LogFlow.Remote:
-                        return new RemoteLogger();
-                    default:
-                        throw new InvalidOperationException("LogFlow value is invalid. Set valid value in settings based on LogFlow enum.");
+                    continue;
                 }
-            });
 
-            public static Logger Current => _lazyLog.Value;
-
-            protected Logger()
-            {
-                _verbosity = (LogVerbosity)Settings.Default.LogVerbosity;
-                _loggingThread = new Thread(new ThreadStart(ProcessQueue)) { IsBackground = true };
-                _loggingThread.Start();
+                returnVal = PartCompare(x1[i], y1[i]);
+                return _isAscending ? returnVal : -returnVal;
             }
 
-            public void Info(string message)
+            if (y1.Length > x1.Length)
             {
-                Log(message, LogType.INF);
+                returnVal = 1;
+            }
+            else if (x1.Length > y1.Length)
+            {
+                returnVal = -1;
+            }
+            else
+            {
+                returnVal = 0;
             }
 
-            public void Debug(string message)
+            return _isAscending ? returnVal : -returnVal;
+
+        }
+
+        int IComparer<FileInfo>.Compare(FileInfo x, FileInfo y)
+        {
+            return CompareString(x.Name, y.Name);
+        }
+
+        int IComparer<string>.Compare(string x, string y)
+        {
+            return CompareString(x, y);
+        }
+
+        private static int PartCompare(string left, string right)
+        {
+            if (!int.TryParse(left, out var x))
             {
-                Log(message, LogType.DBG);
+                return string.Compare(left, right, StringComparison.InvariantCulture);
             }
 
-            public void Error(string message)
-            {
-                Log(message, LogType.ERR);
-            }
+            return !int.TryParse(right, out var y) ? string.Compare(left, right, StringComparison.InvariantCulture) : x.CompareTo(y);
+        }
 
-            public void Error(Exception e)
+        private Dictionary<string, string[]> table = new();
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
             {
-                if (_verbosity != LogVerbosity.None)
+                if (table != null)
                 {
-                    Log(UnwrapExceptionMessages(e), LogType.ERR);
-                }
-            }
-
-            public override string ToString() => $"Logger settings: [Type: {this.GetType().Name}, Verbosity: {_verbosity}, ";
-
-            protected abstract void CreateLog(string message);
-
-            public void Flush() => _waiting.WaitOne();
-
-            public void Dispose()
-            {
-                _terminate.Set();
-                _loggingThread.Join();
-            }
-
-            protected virtual string ComposeLogRow(string message, LogType logType) =>
-                $"[{DateTime.Now.ToString(CultureInfo.InvariantCulture)} {logType}] - {message}";
-
-            protected virtual string UnwrapExceptionMessages(Exception ex)
-            {
-                if (ex == null)
-                    return string.Empty;
-
-                return $"{ex}, Inner exception: {UnwrapExceptionMessages(ex.InnerException)} ";
-            }
-
-            private void ProcessQueue()
-            {
-                while (true)
-                {
-                    _waiting.Set();
-                    int i = WaitHandle.WaitAny(new WaitHandle[] { _hasNewItems, _terminate });
-                    if (i == 1) return;
-                    _hasNewItems.Reset();
-                    _waiting.Reset();
-
-                    Queue<Action> queueCopy;
-                    lock (_queue)
-                    {
-                        queueCopy = new Queue<Action>(_queue);
-                        _queue.Clear();
-                    }
-
-                    foreach (var log in queueCopy)
-                    {
-                        log();
-                    }
-                }
-            }
-
-            private void Log(string message, LogType logType)
-            {
-                if (string.IsNullOrEmpty(message))
-                    return;
-
-                var logRow = ComposeLogRow(message, logType);
-                System.Diagnostics.Debug.WriteLine(logRow);
-
-                if (_verbosity == LogVerbosity.Full)
-                {
-                    lock (_queue)
-                        _queue.Enqueue(() => CreateLog(logRow));
-
-                    _hasNewItems.Set();
+                    table.Clear();
+                    table = null;
                 }
             }
         }
-
-        class LocalLogger : Logger
-        {
-            private const string LogFolderName = "EDC";
-            private const string LogFileName = "EDC.log";
-            private readonly int _logChunkSize = Settings.Default.LogChunkSize;
-            private readonly int _logChunkMaxCount = Settings.Default.LogChunkMaxCount;
-            private readonly int _logArchiveMaxCount = Settings.Default.LogArchiveMaxCount;
-            private readonly int _logCleanupPeriod = Settings.Default.LogCleanupPeriod;
-
-            protected override void CreateLog(string message)
-            {
-                var logFolderPath = Path.Combine(Path.GetTempPath(), LogFolderName);
-                if (!Directory.Exists(logFolderPath))
-                    Directory.CreateDirectory(logFolderPath);
-
-                var logFilePath = Path.Combine(logFolderPath, LogFileName);
-
-                Rotate(logFilePath);
-
-                using (var sw = File.AppendText(logFilePath))
-                {
-                    sw.WriteLine(message);
-                }
-            }
-
-            private void Rotate(string filePath)
-            {
-                if (!File.Exists(filePath))
-                    return;
-
-                var fileInfo = new FileInfo(filePath);
-                if (fileInfo.Length < _logChunkSize)
-                    return;
-
-                var fileTime = DateTime.Now.ToString("dd_MM_yy_h_m_s");
-                var rotatedPath = filePath.Replace(".log", $".{fileTime}");
-                File.Move(filePath, rotatedPath);
-
-                var folderPath = Path.GetDirectoryName(rotatedPath);
-                var logFolderContent = new DirectoryInfo(folderPath).GetFileSystemInfos();
-
-                var chunks = logFolderContent.Where(x => !x.Extension.Equals(".zip", StringComparison.OrdinalIgnoreCase));
-
-                if (chunks.Count() <= _logChunkMaxCount)
-                    return;
-
-                var archiveFolderInfo = Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(rotatedPath), $"{LogFolderName}_{fileTime}"));
-
-                foreach (var chunk in chunks)
-                {
-                    Directory.Move(chunk.FullName, Path.Combine(archiveFolderInfo.FullName, chunk.Name));
-                }
-
-                ZipFile.CreateFromDirectory(archiveFolderInfo.FullName, Path.Combine(folderPath, $"{LogFolderName}_{fileTime}.zip"));
-                Directory.Delete(archiveFolderInfo.FullName, true);
-
-                var archives = logFolderContent.Where(x => x.Extension.Equals(".zip", StringComparison.OrdinalIgnoreCase)).ToArray();
-
-                if (archives.Count() <= _logArchiveMaxCount)
-                    return;
-
-                var oldestArchive = archives.OrderBy(x => x.CreationTime).First();
-                var cleanupDate = oldestArchive.CreationTime.AddDays(_logCleanupPeriod);
-                if (DateTime.Compare(cleanupDate, DateTime.Now) <= 0)
-                {
-                    foreach (var file in logFolderContent)
-                    {
-                        file.Delete();
-                    }
-                }
-                else
-                    File.Delete(oldestArchive.FullName);
-
-            }
-
-            public override string ToString() => $"{base.ToString()}, Chunk Size: {_logChunkSize}, Max chunk count: {_logChunkMaxCount}, Max log archive count: {_logArchiveMaxCount}, Cleanup period: {_logCleanupPeriod} days]";
-        }
-
-        class RemoteLogger : Logger
-        {
-            protected async override void CreateLog(string message)
-            {
-                using (var httpClient = HttpClientProvider.CreateHttpClient(await AuthorizationProvider.Instance.GetAccessToken()))
-                {
-                    var param = JsonConvert.SerializeObject(new { Message = message });
-                    var content = new StringContent(param, Encoding.UTF8, "application/json"); //TODO: OData?
-
-                    try
-                    {
-                        await httpClient.PostAsync(Settings.Default.LogUrl, new StringContent(param))
-                                        .ConfigureAwait(false);
-                    }
-                    catch (HttpRequestException e)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Error sending log to remote server: {e}");
-                    }
-                }
-            }
-
-            public override string ToString() => $"{base.ToString()}, Log URL: {Settings.Default.LogUrl}]";
-        }
-
-        enum LogVerbosity
-        {
-            None = 0,
-            Exceptions,
-            Full
-        }
-
-        public enum LogType
-        {
-            INF,
-            DBG,
-            ERR
-        }
-
-        enum LogFlow
-        {
-            Local = 0,
-            Remote
-        }*/
     }
 }
