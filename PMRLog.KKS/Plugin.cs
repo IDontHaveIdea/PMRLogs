@@ -13,6 +13,9 @@ using BepInEx;
 
 using KKAPI;
 
+#if DEBUG
+using Newtonsoft.Json;
+#endif
 //using static System.Linq.AnonymousComparer;
 
 namespace IDHIPlugins
@@ -44,6 +47,7 @@ namespace IDHIPlugins
         {
             var fileName = $"output_log.txt";
             var strLogs = new StringBuilder();
+            Regex reNumbersEx = new("([0-9]+)", RegexOptions.Compiled);
             FileInfo logFile = new(fileName);
 
             try
@@ -71,12 +75,26 @@ namespace IDHIPlugins
                     {
                         if (_totalFiles > 0)
                         {
-                            var strTmp = $"[Info:  PMRLog] 0001: File {logOutputFileName} already exits rotate.";
                             var logsDir = new DirectoryInfo(path);
                             
                             var files = logsDir.GetFiles("*.log.*").OrderBy(x => x.Name, new NaturalSortComparer<string>()).ToArray();
                             Console.WriteLine($"Total files=[{files.Length}]");
-                            for(var i = (files.Length - 1); i >= 0; i--)
+#if DEBUG
+                            for (var i = 0; i < files.Length; i++)
+                            {
+                                Console.WriteLine(files[i].Name);
+
+                                var m = reNumbersEx.Match(files[i].Name);
+                                if (m.Success)
+                                {
+                                    for (var j = 0; j < m.Groups.Count; j++)
+                                    {
+                                        Console.WriteLine($"j=[{j}]. [{m.Groups[j].Value}]");
+                                    }
+                                }
+                            }
+#endif
+                            for (var i = (files.Length - 1); i >= 0; i--)
                             {
                                 if (i == _totalFiles)
                                 { 
@@ -85,12 +103,6 @@ namespace IDHIPlugins
                                 }
                                 files[i].MoveTo($"{path}/output_log.log.{i+1}");
                             }
-#if DEBUG
-                            for (var i = 0; i < files.Length; i++)
-                            {
-                                Console.WriteLine(files[i].Name);
-                            }
-#endif
                         }
                     }
 
