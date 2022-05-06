@@ -4,7 +4,7 @@
   <Import Project="..\BuildSettings.Common.props" />
   <Import Project="..\BuildSettings.KoikatsuSunshine.props" />
 
-	<!--<Import Project="..\Global\Global.projitems" Label="Shared" />-->
+    <!--<Import Project="..\Global\Global.projitems" Label="Shared" />-->
 
   <PropertyGroup>
     <ProjectGuid>{9289AE95-49F0-460C-BCD0-8FDE608464E0}</ProjectGuid>
@@ -35,6 +35,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>
