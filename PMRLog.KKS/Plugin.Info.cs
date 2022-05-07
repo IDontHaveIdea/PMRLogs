@@ -28,6 +28,6 @@ namespace IDHIPlugins
         public const string PluginDisplayName = "Rotate Log";
 #endif
         public const string PluginName = "PMRlog";
-        public const string Version = "0.0.1.0";
+        public const string Version = "1.0.0.0";
     }
 }
