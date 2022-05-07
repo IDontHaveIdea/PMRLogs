@@ -16,7 +16,7 @@ using KKAPI;
 #if DEBUG
 using Newtonsoft.Json;
 #endif
-//using static System.Linq.AnonymousComparer;
+
 
 namespace IDHIPlugins
 {
@@ -78,22 +78,6 @@ namespace IDHIPlugins
                             var logsDir = new DirectoryInfo(path);
                             
                             var files = logsDir.GetFiles("*.log.*").OrderBy(x => x.Name, new NaturalSortComparer<string>()).ToArray();
-                            Console.WriteLine($"Total files=[{files.Length}]");
-#if DEBUG
-                            for (var i = 0; i < files.Length; i++)
-                            {
-                                Console.WriteLine(files[i].Name);
-
-                                var m = reNumbersEx.Match(files[i].Name);
-                                if (m.Success)
-                                {
-                                    for (var j = 0; j < m.Groups.Count; j++)
-                                    {
-                                        Console.WriteLine($"j=[{j}]. [{m.Groups[j].Value}]");
-                                    }
-                                }
-                            }
-#endif
                             for (var i = (files.Length - 1); i >= 0; i--)
                             {
                                 if (i == _totalFiles)
