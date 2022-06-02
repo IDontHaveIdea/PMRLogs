@@ -77,7 +77,7 @@ namespace IDHIPlugins
                         {
                             var logsDir = new DirectoryInfo(path);
                             
-                            var files = logsDir.GetFiles("*.log.*").OrderBy(x => x.Name, new NaturalSortComparer<string>()).ToArray();
+                            var files = logsDir.GetFiles("output*.log.*").OrderBy(x => x.Name, new NaturalSortComparer<string>()).ToArray();
                             for (var i = (files.Length - 1); i >= 0; i--)
                             {
                                 if (i == _totalFiles)
