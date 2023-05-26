@@ -18,7 +18,7 @@ using Newtonsoft.Json;
 #endif
 
 
-namespace IDHIPlugins
+namespace IDHIPlugIns
 {
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     [BepInPlugin(GUID, PluginDisplayName, Version)]
