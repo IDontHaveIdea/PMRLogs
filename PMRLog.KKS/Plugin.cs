@@ -18,7 +18,7 @@ using Newtonsoft.Json;
 #endif
 
 
-namespace IDHIPlugIns
+namespace IDHIPlugins
 {
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     [BepInPlugin(GUID, PluginDisplayName, Version)]
@@ -116,15 +116,10 @@ namespace IDHIPlugIns
     /// 
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class NaturalSortComparer<T> : IComparer<FileInfo>, IComparer<string>, IDisposable
+    public class NaturalSortComparer<T>(bool inAscendingOrder = true) : IComparer<FileInfo>, IComparer<string>, IDisposable
     {
-        private readonly bool _isAscending;
+        private readonly bool _isAscending = inAscendingOrder;
         private static readonly Regex reNumbersEx = new("([0-9]+)", RegexOptions.Compiled);
-
-        public NaturalSortComparer(bool inAscendingOrder = true)
-        {
-            _isAscending = inAscendingOrder;
-        }
 
         public int Compare(string x, string y)
         {
@@ -205,7 +200,7 @@ namespace IDHIPlugIns
                 : x.CompareTo(y);
         }
 
-        private Dictionary<string, string[]> table = new();
+        private Dictionary<string, string[]> table = [];
 
         public void Dispose()
         {

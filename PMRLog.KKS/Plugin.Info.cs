@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
 
-using IDHIPlugIns;
+using IDHIPlugins;
 using IDHIUtils;
 
 #region Assembly attributes
@@ -17,7 +17,7 @@ using IDHIUtils;
 
 #endregion Assembly attributes
 
-namespace IDHIPlugIns
+namespace IDHIPlugins
 {
     public partial class PMRLogs
     {
