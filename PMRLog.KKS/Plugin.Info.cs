@@ -1,5 +1,8 @@
-﻿using System.Reflection;
-using System.Runtime.InteropServices;
+﻿//
+// Plugin Metadata
+//
+
+using System.Reflection;
 
 using IDHIPlugins;
 using IDHIUtils;
