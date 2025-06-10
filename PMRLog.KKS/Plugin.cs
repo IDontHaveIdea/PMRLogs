@@ -1,4 +1,4 @@
-﻿//
+//
 // Poor man rotating log
 //
 
@@ -22,8 +22,8 @@ namespace IDHIPlugins
 {
     [BepInDependency(KoikatuAPI.GUID, KoikatuAPI.VersionConst)]
     [BepInPlugin(GUID, PluginDisplayName, Version)]
-    [BepInProcess(KoikatuAPI.GameProcessName)]
-    [BepInProcess(KoikatuAPI.VRProcessName)]
+    //[BepInProcess(KoikatuAPI.GameProcessName)]
+    //[BepInProcess(KoikatuAPI.VRProcessName)]
     public partial class PMRLogs : BaseUnityPlugin
     {
         private const int _totalFiles = 10;
@@ -36,7 +36,7 @@ namespace IDHIPlugins
         /// <summary>
         /// On a clean exit this plugin will save the output_log.txt in UserData/Logs
         /// It will rotate 10 files i.e., after a full rotation there should be 11 files
-        /// in the drectory
+        /// in the directory
         ///
         /// TODO: Take care of missing files in the order
         /// 
